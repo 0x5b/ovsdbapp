@@ -155,7 +155,6 @@ class OvsOvnVenvFixture(OvsVenvFixture):
     NBSCHEMA = 'ovn-nb.ovsschema'
     SBSCHEMA = 'ovn-sb.ovsschema'
     IC_NBSCHEMA = 'ovn-ic-nb.ovsschema'
-    IC_SBSCHEMA = 'ovn-ic-sb.ovsschema'
 
     def __init__(self, venv, ovndir=None, add_chassis=False, **kwargs):
         self.add_chassis = add_chassis
@@ -166,7 +165,7 @@ class OvsOvnVenvFixture(OvsVenvFixture):
         super().__init__(venv, **kwargs)
         self.ovndir = self._share_path(self.OVN_PATHS, ovndir,
                                        [self.SBSCHEMA, self.NBSCHEMA,
-                                        self.IC_NBSCHEMA, self.IC_SBSCHEMA])
+                                        self.IC_NBSCHEMA])
         self.env.update({'OVN_RUNDIR': self.venv})
 
     @property
@@ -176,10 +175,6 @@ class OvsOvnVenvFixture(OvsVenvFixture):
     @property
     def ovnnb_schema(self):
         return os.path.join(self.ovndir, self.NBSCHEMA)
-
-    @property
-    def ovn_icsb_schema(self):
-        return os.path.join(self.ovndir, self.IC_SBSCHEMA)
 
     @property
     def ovn_icnb_schema(self):
@@ -197,15 +192,10 @@ class OvsOvnVenvFixture(OvsVenvFixture):
     def ovn_icnb_connection(self):
         return 'unix:' + os.path.join(self.venv, 'ovn_ic_nb_db.sock')
 
-    @property
-    def ovn_icsb_connection(self):
-        return 'unix:' + os.path.join(self.venv, 'ovn_ic_sb_db.sock')
-
     def setup_dbs(self):
         super().setup_dbs()
         self.create_db('ovnsb.db', self.ovnsb_schema)
         self.create_db('ovnnb.db', self.ovnnb_schema)
-        self.create_db('ovn_ic_sb.db', self.ovn_icsb_schema)
         self.create_db('ovn_ic_nb.db', self.ovn_icnb_schema)
 
     def start_ovsdb_processes(self):
@@ -217,8 +207,6 @@ class OvsOvnVenvFixture(OvsVenvFixture):
              "OVN_Southbound", "ovnsb", "SB_Global"),
             (self.ovn_icnb_connection,
              "OVN_IC_Northbound", "ovn_ic_nb", "IC_NB_Global"),
-            (self.ovn_icsb_connection,
-             "OVN_IC_Southbound", "ovn_ic_sb", "IC_SB_Global"),
         ]:
             self.call(['ovsdb-server',
                        '--detach', '--no-chdir', '-vconsole:off',
@@ -239,7 +227,6 @@ class OvsOvnVenvFixture(OvsVenvFixture):
         self.call(['ovn-nbctl', 'init'])
         self.call(['ovn-sbctl', 'init'])
         self.call(['ovn-ic-nbctl', 'init'])
-        self.call(['ovn-ic-sbctl', 'init'])
         if self.add_chassis:
             self.call([
                 'ovs-vsctl', 'set', 'open', '.',

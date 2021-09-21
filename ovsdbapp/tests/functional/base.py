@@ -31,8 +31,7 @@ class FunctionalTestCase(base.TestCase):
     schema_map = {'Open_vSwitch': ovsvenv.ovs_connection,
                   'OVN_Northbound': ovsvenv.ovnnb_connection,
                   'OVN_Southbound': ovsvenv.ovnsb_connection,
-                  'OVN_IC_Northbound': ovsvenv.ovn_icnb_connection,
-                  'OVN_IC_Southbound': ovsvenv.ovn_icsb_connection}
+                  'OVN_IC_Northbound': ovsvenv.ovn_icnb_connection}
     ovsvenvlog = None
     if os.getenv('KEEP_VENV') and os.getenv('VIRTUAL_ENV'):
         ovsvenvlog = open(os.path.join(os.getenv('VIRTUAL_ENV'),
