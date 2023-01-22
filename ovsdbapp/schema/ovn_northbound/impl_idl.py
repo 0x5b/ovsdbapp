@@ -389,14 +389,13 @@ class OvnNbApiIdlImpl(ovs_idl.Backend, api.API):
     def ha_chassis_group_get(self, name):
         return cmd.HAChassisGroupGetCommand(self, name)
 
-    def ha_chassis_group_add_chassis(self, hcg_id, chassis, priority,
-                                     **columns):
+    def ha_chassis_group_add_chassis(self, hcg, chassis, priority, **columns):
         return cmd.HAChassisGroupAddChassisCommand(
-            self, hcg_id, chassis, priority, **columns)
+            self, hcg, chassis, priority, **columns)
 
-    def ha_chassis_group_del_chassis(self, hcg_id, chassis, if_exists=False):
+    def ha_chassis_group_del_chassis(self, hcg, chassis, if_exists=False):
         return cmd.HAChassisGroupDelChassisCommand(
-            self, hcg_id, chassis, if_exists=if_exists)
+            self, hcg, chassis, if_exists=if_exists)
 
     def meter_add(self, name, unit, rate=1, fair=False, burst_size=0,
                   action=None, may_exist=False, **columns):

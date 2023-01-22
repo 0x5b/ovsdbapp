@@ -1822,18 +1822,17 @@ class HAChassisGroupGetCommand(cmd.BaseGetRowCommand):
 class HAChassisGroupAddChassisCommand(cmd.AddCommand):
     table_name = 'HA_Chassis'
 
-    def __init__(self, api, hcg_id, chassis, priority, **columns):
+    def __init__(self, api, hcg, chassis, priority, **columns):
         super().__init__(api)
-        self.hcg_id = hcg_id
+        self.hcg = hcg
         self.chassis = chassis
         self.priority = priority
         self.columns = columns
 
     def run_idl(self, txn):
-        hc_group = self.api.lookup('HA_Chassis_Group', self.hcg_id)
+        hc_group = self.api.lookup('HA_Chassis_Group', self.hcg)
         found = False
-        hc = None
-        for hc in hc_group.ha_chassis:
+        for hc in getattr(hc_group, 'ha_chassis', []):
             if hc.chassis_name != self.chassis:
                 continue
             found = True
@@ -1853,28 +1852,31 @@ class HAChassisGroupAddChassisCommand(cmd.AddCommand):
 class HAChassisGroupDelChassisCommand(cmd.BaseCommand):
     table_name = 'HA_Chassis'
 
-    def __init__(self, api, hcg_id, chassis, if_exists=False):
+    def __init__(self, api, hcg, chassis, if_exists=False):
         super().__init__(api)
-        self.hcg_id = hcg_id
+        self.hcg = hcg
         self.chassis = chassis
         self.if_exists = if_exists
 
     def run_idl(self, txn):
         try:
-            hc_group = self.api.lookup('HA_Chassis_Group', self.hcg_id)
-        except idlutils.RowNotFound:
+            hc_group = self.api.lookup('HA_Chassis_Group', self.hcg)
+        except idlutils.RowNotFound as exc:
             if self.if_exists:
                 return
 
+            raise RuntimeError('HA Chassis Group %s does not exist' %
+                               utils.get_uuid(self.hcg)) from exc
+
         hc = None
-        for hc in hc_group.ha_chassis:
+        for hc in getattr(hc_group, 'ha_chassis', []):
             if hc.chassis_name == self.chassis:
                 break
         else:
             if self.if_exists:
                 return
             raise RuntimeError(
-                'HA Chassis %s does not exist' % self.hcg_id)
+                'HA Chassis %s does not exist' % utils.get_uuid(self.hcg))
 
         hc_group.delvalue('ha_chassis', hc)
         hc.delete()
